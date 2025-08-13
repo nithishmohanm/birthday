@@ -6,37 +6,102 @@
     <title>Happy Birthday!</title>
     <style>
         body {
-            font-family: 'Comic Sans MS', cursive;
-            background: linear-gradient(135deg, #ffafbd, #ffc3a0);
+            margin: 0;
+            padding: 0;
             text-align: center;
-            padding: 50px;
-            color: white;
+            background: linear-gradient(135deg, #ffafbd, #ffc3a0);
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            overflow: hidden;
         }
         h1 {
             font-size: 3em;
-            margin-top: 20px;
+            margin-top: 50px;
+            color: white;
             animation: bounce 2s infinite;
         }
         p {
-            font-size: 1.5em;
+            font-size: 1.4em;
+            color: white;
             max-width: 600px;
-            margin: auto;
-        }
-        img {
-            border-radius: 15px;
-            margin-top: 20px;
-            max-width: 90%;
+            margin: 20px auto;
         }
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
         }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 999;
+        }
     </style>
 </head>
 <body>
+
     <h1>🎉 Happy Birthday, [Friend's Name]! 🎂</h1>
-    <p>Wishing you a day filled with love, laughter, and all your favorite things! 💖</p>
-    <img src="https://i.imgur.com/Oj1bG0n.gif" alt="Birthday Celebration">
+    <p>Wishing you a day filled with love, laughter, and all your favorite things. You deserve the best, always! 💖</p>
     <p>From, [Your Name]</p>
+
+    <!-- Background Music -->
+    <audio autoplay loop>
+        <source src="https://www.bensound.com/bensound-music/bensound-sunny.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti"></canvas>
+
+    <script>
+        const canvas = document.getElementById('confetti');
+        const ctx = canvas.getContext('2d');
+        let W = window.innerWidth;
+        let H = window.innerHeight;
+        canvas.width = W;
+        canvas.height = H;
+
+        const particles = [];
+        for (let i = 0; i < 150; i++) {
+            particles.push({
+                x: Math.random() * W,
+                y: Math.random() * H,
+                r: Math.random() * 4 + 1,
+                d: Math.random() * 150,
+                color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                tilt: Math.random() * 10 - 10
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.fillStyle = p.color;
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, false);
+                ctx.fill();
+            });
+            update();
+        }
+
+        function update() {
+            particles.forEach(p => {
+                p.y += Math.cos(p.d) + 1 + p.r / 2;
+                p.x += Math.sin(0.01) * 2;
+                if (p.y > H) {
+                    p.x = Math.random() * W;
+                    p.y = -10;
+                }
+            });
+        }
+
+        setInterval(draw, 20);
+        window.addEventListener("resize", () => {
+            W = window.innerWidth;
+            H = window.innerHeight;
+            canvas.width = W;
+            canvas.height = H;
+        });
+    </script>
+
 </body>
 </html>
