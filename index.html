@@ -38,19 +38,74 @@
             padding: 0 20px;
         }
         .birthday-message .line {
-    font-family: 'Pacifico', cursive;
-    font-size: 1.6em; /* increased from 1.3em */
-    color: #ff69b4; /* solid pink */
-    text-shadow: 2px 2px 6px rgba(0,0,0,0.2);
-    margin: 12px 0;
-    line-height: 1.6em;
-    opacity: 0;
-    transform: translateY(15px);
-    animation: fadeInLine 1s ease forwards;
-}
+            font-family: 'Pacifico', cursive;
+            font-size: 1.6em;
+            color: #ff69b4;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+            margin: 12px 0;
+            line-height: 1.6em;
+            opacity: 0;
+            transform: translateY(15px);
+            animation: fadeInLine 1s ease forwards;
+        }
         .birthday-message .line:nth-child(1) { animation-delay: 0.5s; }
         .birthday-message .line:nth-child(2) { animation-delay: 1.5s; }
         .birthday-message .line:nth-child(3) { animation-delay: 2.5s; }
+
+        /* Play Button Styling */
+        .play-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-button {
+            background: linear-gradient(45deg, #ff69b4, #ff1493);
+            border: none;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.4);
+            transition: transform 0.2s ease;
+            animation: pulseButton 2s infinite;
+        }
+        .play-button:hover {
+            transform: scale(1.1);
+        }
+        .play-text {
+    margin-top: 20px;
+    font-size: 2.0em;
+    color: white;
+    font-family: 'Pacifico', cursive;
+}
+
+        /* Audio Controls */
+        .audio-controls {
+            margin-top: 20px;
+            display: none;
+        }
+        .audio-controls.show {
+            display: block;
+        }
+        audio {
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+        }
 
         /* Animations */
         @keyframes bounce {
@@ -67,6 +122,10 @@
         }
         @keyframes fadeInLine {
             to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulseButton {
+            0%, 100% { transform: scale(1); box-shadow: 0 8px 20px rgba(255, 105, 180, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 12px 25px rgba(255, 105, 180, 0.6); }
         }
 
         footer {
@@ -85,6 +144,14 @@
     </style>
 </head>
 <body>
+    <!-- Play Button Overlay -->
+    <div class="play-overlay" id="playOverlay">
+        <div>
+            <button class="play-button" id="playButton">▶</button>
+            <div class="play-text">🎵 Resh, kindly pls click this button pa🙏! 🎵</div>
+        </div>
+    </div>
+    
 
     <h1>🎉 Happiest Birthdayy Resh ! 🎂</h1>
     <img src="friend.jpg" alt="Birthday Person" class="friend-img">
@@ -98,17 +165,61 @@
     <p style="margin-top: 20px; font-weight: bold;">from, ur dear friend nm </p>
 
     <!-- Background Music -->
-    <audio autoplay loop controls style="margin-top: 20px;">
-        <source src="https://www.bensound.com/bensound-music/bensound-sunny.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
+    <div class="audio-controls" id="audioControls">
+        <audio id="birthdayAudio" loop controls>
+            <source src="https://www.bensound.com/bensound-music/bensound-sunny.mp3" type="audio/mpeg">
+            <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" type="audio/wav">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
 
     <!-- Confetti Canvas -->
     <canvas id="confetti"></canvas>
 
-    <footer>Made with ❤️ just for you by me and my brother Chatgpt</footer>
+    <footer>Made with ❤️ just for you</footer>
 
     <script>
+        // Audio and Play Button Logic
+        const playOverlay = document.getElementById('playOverlay');
+        const playButton = document.getElementById('playButton');
+        const audio = document.getElementById('birthdayAudio');
+        const audioControls = document.getElementById('audioControls');
+
+        playButton.addEventListener('click', function() {
+            // Hide overlay
+            playOverlay.classList.add('hidden');
+            
+            // Show audio controls
+            audioControls.classList.add('show');
+            
+            // Try to play audio
+            audio.play().then(() => {
+                console.log('Audio started playing');
+            }).catch((error) => {
+                console.log('Audio autoplay failed:', error);
+                // Audio controls will still be visible for manual play
+            });
+            
+            // Start confetti after a short delay
+            setTimeout(() => {
+                startConfetti();
+            }, 500);
+        });
+
+        // Alternative: Try autoplay on page load (may not work in most browsers)
+        window.addEventListener('load', function() {
+            audio.play().then(() => {
+                // If autoplay works, hide the overlay
+                playOverlay.classList.add('hidden');
+                audioControls.classList.add('show');
+                startConfetti();
+            }).catch(() => {
+                // Keep the play button visible
+                console.log('Autoplay blocked - showing play button');
+            });
+        });
+
+        // Confetti Animation
         const canvas = document.getElementById('confetti');
         const ctx = canvas.getContext('2d');
         let W = window.innerWidth;
@@ -116,15 +227,20 @@
         canvas.width = W;
         canvas.height = H;
 
-        const particles = [];
-        for (let i = 0; i < 200; i++) {
-            particles.push({
-                x: Math.random() * W,
-                y: Math.random() * H,
-                r: Math.random() * 4 + 1,
-                d: Math.random() * 200,
-                color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-            });
+        let particles = [];
+        let animationId;
+
+        function createParticles() {
+            particles = [];
+            for (let i = 0; i < 200; i++) {
+                particles.push({
+                    x: Math.random() * W,
+                    y: Math.random() * H,
+                    r: Math.random() * 4 + 1,
+                    d: Math.random() * 200,
+                    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                });
+            }
         }
 
         function draw() {
@@ -149,12 +265,26 @@
             });
         }
 
-        setInterval(draw, 20);
+        function startConfetti() {
+            createParticles();
+            function animate() {
+                draw();
+                animationId = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
         window.addEventListener("resize", () => {
             W = window.innerWidth;
             H = window.innerHeight;
             canvas.width = W;
             canvas.height = H;
+        });
+
+        // Try to preload and start everything when possible
+        document.addEventListener('DOMContentLoaded', function() {
+            // Preload audio
+            audio.load();
         });
     </script>
 
